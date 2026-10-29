@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "note": "Downloads omaania may make. Wake word bundles are the same files omawake uses (its models-v1 release); an entry is downloaded only when it has status 'available', an https url and a sha256. Avatars: 'glyph' is the free default avatar being made; until it is published the player's own default is used.",
+  "wake_word": {
+    "id": "hey_omarchy",
+    "phrase": "Hey Omarchy",
+    "language": "en",
+    "status": "training",
+    "url": "https://github.com/rob-d3v/omawake/releases/download/models-v1/hey_omarchy.tar.gz",
+    "sha256": null,
+    "license": "Apache-2.0"
+  },
+  "default_avatar": {
+    "id": "glyph",
+    "name": "Glyph",
+    "file": "Glyph.ania",
+    "status": "coming soon",
+    "url": null,
+    "sha256": null,
+    "license": "free"
+  }
+}
