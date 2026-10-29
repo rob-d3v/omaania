@@ -30,8 +30,14 @@ from .util import UI, Record, atomic_write, default_agent, head, ok, read_json, 
 
 STEPS = 8
 
-# omarchy default agent -> `ania-mcp install <client>` (clients ania-mcp 0.1.0 knows).
-MCP_CLIENTS = {"claude": "claude-code", "gemini": "gemini", "cursor-agent": "cursor"}
+# omarchy default agent -> `ania-mcp install <client>` (clients MCP_PACKAGE knows).
+MCP_CLIENTS = {"claude": "claude-code", "gemini": "gemini", "cursor-agent": "cursor",
+               "codex": "codex", "opencode": "opencode"}
+# What to do after install, per client (sign-in is interactive: never run here).
+MCP_SIGNIN = {"claude-code": "inside Claude Code: /mcp -> ania -> Authenticate",
+              "gemini": "inside gemini: /mcp auth ania",
+              "codex": "run: codex mcp login ania",
+              "opencode": "run: opencode mcp auth ania"}
 MCP_URL = "https://mcp.aniamodels.shop/mcp/ania"
 
 UNIT = """[Unit]
@@ -166,7 +172,11 @@ def step_launcher(rec: Record) -> bool:
     return True
 
 
-def step_hypr(rec: Record, o) -> bool:
+HYPR_QUESTION = ("Add the avatar's Hyprland window rules? (writes {rules} and adds one line"
+                 " to your hyprland.lua: {include})")
+
+
+def step_hypr(rec: Record, o, ui: UI | None = None) -> bool:
     _step(3, "Hyprland window rules")
     if o.no_hypr:
         ok("skipped (--no-hypr)")
@@ -175,6 +185,14 @@ def step_hypr(rec: Record, o) -> bool:
     if others and not paths.hypr_rules.exists() and not hypr.has_include():
         ok(f"your own Ania Player rules are already in {others[0]}; omaania adds no second set")
         return True
+    # Editing the user's own hyprland.lua needs a yes. Once the line is there
+    # (they said yes before), setup only refreshes omaania's own rules file.
+    if not hypr.has_include():
+        q = HYPR_QUESTION.format(rules=paths.hypr_rules, include=hypr.INCLUDE)
+        if not (ui or UI(True)).ask(q, True):
+            ok("left your Hyprland config alone; the avatar may get a border or tile."
+               " Later: omaania setup (or --no-hypr to stop asking)")
+            return True
     existed = paths.hypr_rules.exists()
     wrote, added, note = hypr.install()
     if note:
@@ -202,7 +220,9 @@ def omawake_installed() -> bool:
 
 
 def step_wake(rec: Record, o, ui: UI | None = None) -> tuple[bool, str]:
-    _step(4, "Wake word “Hey Omarchy”")
+    phrase = assets.wake_phrase()
+    published = assets.wake_published()
+    _step(4, f"Wake word “{phrase}”" + ("" if published else " (free model coming soon, not published yet)"))
     model = assets.wake_id()
     if o.no_wake:
         ok("skipped (--no-wake): the keyboard shortcut ctrl+shift+space still talks to the avatar")
@@ -211,7 +231,7 @@ def step_wake(rec: Record, o, ui: UI | None = None) -> tuple[bool, str]:
         # One phrase must wake one thing. omawake skips any word the running
         # player listens for, so giving it to the avatar needs nothing else.
         who = (ui or UI(True)).choose(
-            "omawake is installed too. Who should answer “Hey Omarchy”?",
+            f"omawake is installed too. Who should answer “{phrase}”?",
             [("player", "the avatar (Ania Player); omawake leaves this word to it automatically"),
              ("omawake", "omawake; the avatar keeps the ctrl+shift+space shortcut")], "player")
         if who == "omawake":
@@ -407,18 +427,12 @@ def step_mcp(ui: UI, rec: Record, o) -> bool:
         ok(f"(sandbox) would run: npx -y {MCP_PACKAGE} install {client}")
         rec.set("mcp_client", client)
         return True
+    # ania-mcp >= 0.1.1 runs `claude mcp add` itself for claude-code.
     r = subprocess.run(["npx", "-y", MCP_PACKAGE, "install", client])
-    if r.returncode == 0 and client == "claude-code":
-        # ania-mcp 0.1.0 only PRINTS the command for Claude Code; run it here.
-        if not shutil.which("claude"):
-            warn(f"run this once Claude Code is installed: claude mcp add --transport http --scope user ania {MCP_URL}")
-            return False
-        have = subprocess.run(["claude", "mcp", "get", "ania"], capture_output=True, text=True)
-        if have.returncode != 0:
-            r = subprocess.run(["claude", "mcp", "add", "--transport", "http", "--scope", "user", "ania", MCP_URL])
     if r.returncode == 0:
         rec.set("mcp_client", client)
-        ok(f"{agent} has the Ania tools (sign-in opens in your browser the first time)")
+        signin = MCP_SIGNIN.get(client, "sign-in opens in your browser the first time")
+        ok(f"{agent} has the Ania tools; to sign in, {signin}")
         return True
     warn(f"npx -y {MCP_PACKAGE} install {client} failed (exit {r.returncode})")
     return False
@@ -433,7 +447,7 @@ def run_setup(o) -> int:
         rec.save()
         print("\nStopped: Ania Player is needed for the rest. Fix the line above and run setup again.")
         return 1
-    for fn in (lambda: step_launcher(rec), lambda: step_hypr(rec, o)):
+    for fn in (lambda: step_launcher(rec), lambda: step_hypr(rec, o, ui)):
         problems += 0 if fn() else 1
     wake_ready, model = step_wake(rec, o, ui)
     for fn in (lambda: step_assistant(ui, rec, o, wake_ready, model), lambda: step_avatar(rec),
@@ -444,7 +458,7 @@ def run_setup(o) -> int:
     rec.save()
     print("\nDone." if not problems else f"\nFinished with {problems} item(s) to look at (see ! above).")
     print("Click the avatar icon in the bar to show or hide it."
-          + (f" Say “Hey Omarchy” to talk." if wake_ready else " Press ctrl+shift+space to talk."))
+          + (f" Say “{assets.wake_phrase()}” to talk." if wake_ready else " Press ctrl+shift+space to talk."))
     return 0 if not problems else 1
 
 

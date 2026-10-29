@@ -33,6 +33,14 @@ def wake_id() -> str:
     return str(catalog().get("wake_word", {}).get("id", "hey_omarchy"))
 
 
+def wake_phrase() -> str:
+    return str(catalog().get("wake_word", {}).get("phrase", "Hey Omarchy"))
+
+
+def wake_published() -> bool:
+    return catalog().get("wake_word", {}).get("status") == "available"
+
+
 def find_wake_bundle(model: str | None = None) -> tuple[Path | None, str]:
     """Where a usable bundle already is: (path, label)."""
     model = model or wake_id()

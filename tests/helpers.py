@@ -92,6 +92,44 @@ class Sandbox:
         return subprocess.run([str(CLI), *args], env=self.env(**extra), capture_output=True, text=True,
                               stdin=subprocess.DEVNULL, timeout=120)
 
+    def run_tty(self, *args: str, answers: dict[str, str] | None = None, **extra) -> str:
+        """Run with a real terminal on stdin/stdout. Each prompt whose text
+        contains a key of `answers` gets that answer; any other prompt gets
+        Enter (its default). Returns everything printed."""
+        import pty
+        import select
+        answers = answers or {}
+        master, slave = pty.openpty()
+        p = subprocess.Popen([str(CLI), *args], env=self.env(**extra), stdin=slave, stdout=slave,
+                             stderr=slave, close_fds=True)
+        os.close(slave)
+        out, pending = b"", b""
+        try:
+            while True:
+                r, _, _ = select.select([master], [], [], 60)
+                if not r:
+                    break
+                try:
+                    chunk = os.read(master, 4096)
+                except OSError:
+                    break
+                if not chunk:
+                    break
+                out += chunk
+                pending += chunk
+                text = pending.decode(errors="replace")
+                if text.rstrip().endswith(("[Y/n]", "[y/N]", "number:")) or text.endswith(("]: ", ": ")) and "\n" not in text[-3:]:
+                    last = text.splitlines()[-1] if text.splitlines() else ""
+                    reply = next((a for k, a in answers.items() if k in last), "")
+                    os.write(master, (reply + "\n").encode())
+                    pending = b""
+                elif b"\n" in pending:
+                    pending = pending.rsplit(b"\n", 1)[1]
+        finally:
+            p.wait(timeout=120)
+            os.close(master)
+        return out.decode(errors="replace").replace("\r\n", "\n")
+
     def calls(self) -> list[str]:
         p = self.home / "aniaplayer-calls.log"
         return p.read_text().splitlines() if p.exists() else []

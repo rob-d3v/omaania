@@ -3,10 +3,15 @@
 **A talking avatar on your Omarchy desktop that answers with your own AI agent.**
 
 omaania installs and controls [Ania Player](https://aniamodels.shop): an
-animated avatar that floats over your desktop, listens for “Hey Omarchy”,
+animated avatar that floats over your desktop, listens when you press
+`ctrl+shift+space` (or say a wake word you already have, such as “Ok Ania”),
 sends what you say to your Omarchy default agent (Codex, Claude Code,
 OpenCode, …) and speaks the answer with lip-sync. A bar widget in the native
 Omarchy style shows its state and holds the whole menu.
+
+> A free “Hey Omarchy” wake word is coming soon: the model is still training
+> and can't be downloaded yet. Until then, use the shortcut or your own wake
+> word (works today).
 
 > **Unofficial community plugin, not affiliated with Omarchy or 37signals.**
 
@@ -50,12 +55,15 @@ Setup checks each step and only acts when something is missing:
 2. **Launcher.** Writes `~/.local/bin/aniaplayer` (the package's launcher,
    pointed at `~/.local/opt`), an app menu entry and the icon, and links
    `~/.local/bin/omaania`.
-3. **Hyprland rules.** Writes `~/.config/hypr/omaania.lua` (borderless,
+3. **Hyprland rules (asks first, default yes).** Writes `~/.config/hypr/omaania.lua` (borderless,
    pinned overlay for the avatar and its chat; settings windows float) and
    adds one line to `~/.config/hypr/hyprland.lua`:
    `pcall(require, "hypr.omaania")`. Omarchy has no user drop-in folder for
    Hyprland rules, so this one line is the only edit to your own files.
-4. **Wake word “Hey Omarchy”.** Reuses the bundle from
+   Setup asks before making it (Enter = yes; `--yes` answers yes and prints
+   the question). Say no, or pass `--no-hypr`, and your Hyprland files stay
+   untouched.
+4. **Wake word “Hey Omarchy” (coming soon).** Once the model is published, reuses the bundle from
    [omawake](https://github.com/rob-d3v/omawake) when it is installed,
    otherwise downloads it (pinned sha256) into
    `~/.local/share/aniaplayer/wakeword/`, which omawake also reads.
@@ -72,10 +80,12 @@ Setup checks each step and only acts when something is missing:
    and turns autostart on (`--no-autostart` to skip). An `aniaplayer.service`
    you wrote yourself is left untouched.
 8. **Ania tools for your agent (optional, asks first).** Runs
-   `npx -y ania-mcp@0.1.1 install <your agent>` so your agent can create and
-   switch avatars. Supported today: Claude Code (setup then also runs
-   `claude mcp add --transport http --scope user ania …`), Gemini CLI, Cursor;
-   for other agents setup prints the MCP URL to add by hand.
+   `npx -y ania-mcp@0.1.2 install <your agent>` so your agent can create and
+   switch avatars. Supported today: Codex (`[mcp_servers.ania]` in
+   `~/.codex/config.toml`, backed up first; sign in with
+   `codex mcp login ania`), Claude Code (runs
+   `claude mcp add --transport http --scope user ania …`), OpenCode, Gemini
+   CLI, Cursor; for other agents setup prints the MCP URL to add by hand.
 
 Non-interactive flags: `--yes`, `--brain omarchy-agent|own-key`,
 `--api-base`, `--api-model` (the key comes from the prompt or the
@@ -88,7 +98,7 @@ Non-interactive flags: `--yes`, `--brain omarchy-agent|own-key`,
 
 | Setting | Default | Player config key |
 |---|---|---|
-| Wake word | on, “Hey Omarchy” (once the model is published; until then `ctrl+shift+space`) | `wake_word.model_name`, `wake_word.wake_word_enabled` |
+| Wake word | `ctrl+shift+space` today; “Hey Omarchy” once the free model is published (coming soon) | `wake_word.model_name`, `wake_word.wake_word_enabled` |
 | Conversation | keeps listening until you say “that's all” / “goodbye”, or 30 s of silence | `agent.conversation_mode = "until_dismissed"` |
 | Brain | your Omarchy default agent | `agent.provider = "omarchy-agent"` |
 | Brain (option) | your own OpenAI-compatible key, stored `0600` in `~/.config/aniaplayer/omaania-api.key` | `agent.provider = "openai"`, `agent.api_key_file` |
@@ -191,7 +201,7 @@ ships and only relies on what is there (`omaania doctor` lists it).
 - No sudo, no `pkexec`, no package manager, no edits outside your home.
 - An API key you enter is read from the prompt (or `OMAANIA_API_KEY`), never
   from argv, and stored `0600`.
-- `npx -y ania-mcp@0.1.1` runs only if you say yes, pinned to that version.
+- `npx -y ania-mcp@0.1.2` runs only if you say yes, pinned to that version.
 - Every file setup creates is listed in `~/.local/state/omaania/installed.json`.
 
 ## Privacy
@@ -211,7 +221,7 @@ ships and only relies on what is there (`omaania doctor` lists it).
 | The avatar has a frame or tiles | `omaania doctor` (rules file and the `hypr.omaania` line), then `hyprctl reload` |
 | Two avatars appear at login | Remove `~/.config/autostart/aniaplayer.desktop` (the service already starts it) |
 | One phrase wakes both the avatar and omawake | Give them different wake words (in omawake: `omawake wake <id>`) |
-| It doesn't wake on “Hey Omarchy” | The model may not be published yet (`omaania doctor`); use `ctrl+shift+space` |
+| It doesn't wake on “Hey Omarchy” | The model isn't published yet (coming soon); use `ctrl+shift+space` or your own wake word |
 | Anything else | `omaania doctor`, `omaania logs --open` |
 
 ## Uninstall

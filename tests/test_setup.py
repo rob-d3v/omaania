@@ -66,6 +66,54 @@ class SetupUninstall(unittest.TestCase):
         self.assertEqual((h / ".config/hypr/hyprland.lua").read_text(), Sandbox.HYPR)
         self.assertEqual(self.sb.files(), self.before)
 
+    def test_hypr_line_needs_consent(self):
+        h = self.sb.home
+        include = 'pcall(require, "hypr.omaania")'
+        # --yes: the question and its answer are printed, then the line is added
+        r = self.setup_()
+        self.assertIn("Add the avatar's Hyprland window rules?", r.stdout)
+        self.assertIn(include + ") yes (--yes)", r.stdout)
+        self.assertEqual((h / ".config/hypr/hyprland.lua").read_text().count(include), 1)
+        # once it is there, setup does not ask again
+        r = self.setup_()
+        self.assertNotIn("Add the avatar's Hyprland window rules?", r.stdout)
+        self.sb.run("uninstall", "--yes", "--purge")
+        self.assertEqual((h / ".config/hypr/hyprland.lua").read_text(), Sandbox.HYPR)
+
+    def test_hypr_interactive_no_leaves_hyprland_lua_alone(self):
+        h = self.sb.home
+        out = self.sb.run_tty("setup", "--deb", str(self.deb), "--sha256", self.sha, "--tag", "vTEST",
+                              "--no-mcp", answers={"Hyprland window rules?": "n"})
+        self.assertIn("Add the avatar's Hyprland window rules?", out)
+        self.assertIn("[Y/n]", out)
+        self.assertIn("left your Hyprland config alone", out)
+        self.assertEqual((h / ".config/hypr/hyprland.lua").read_text(), Sandbox.HYPR)
+        self.assertFalse((h / ".config/hypr/omaania.lua").exists())
+
+    def test_hypr_interactive_default_is_yes(self):
+        h = self.sb.home
+        out = self.sb.run_tty("setup", "--deb", str(self.deb), "--sha256", self.sha, "--tag", "vTEST", "--no-mcp")
+        self.assertIn("Add the avatar's Hyprland window rules?", out)
+        self.assertEqual((h / ".config/hypr/hyprland.lua").read_text().count('pcall(require, "hypr.omaania")'), 1)
+
+    def test_hypr_without_terminal_or_yes_changes_nothing(self):
+        r = self.sb.run("setup", "--deb", str(self.deb), "--sha256", self.sha, "--tag", "vTEST", "--no-mcp")
+        self.assertIn("skipped (no terminal; re-run with --yes)", r.stdout)
+        self.assertEqual((self.sb.home / ".config/hypr/hyprland.lua").read_text(), Sandbox.HYPR)
+
+    def test_codex_agent_gets_the_mcp_server(self):
+        agent = self.sb.home / ".config/omarchy/defaults/agent"
+        agent.parent.mkdir(parents=True)
+        agent.write_text("codex\n")
+        r = self.setup_("--mcp")
+        self.assertIn("would run: npx -y ania-mcp@0.1.2 install codex", r.stdout, r.stdout)
+        self.assertNotIn("not handled by", r.stdout)
+
+    def test_wake_word_is_honest_until_published(self):
+        r = self.setup_()
+        self.assertIn("Wake word “Hey Omarchy” (free model coming soon, not published yet)", r.stdout)
+        self.assertIn("Press ctrl+shift+space to talk.", r.stdout)
+
     def test_omawake_installed_gets_asked_who_owns_the_wake_word(self):
         r = self.setup_()
         self.assertNotIn("omawake skips it", r.stdout)
