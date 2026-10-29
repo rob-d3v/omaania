@@ -1,0 +1,131 @@
+# SPDX-License-Identifier: Apache-2.0
+"""End-to-end: setup, setup again, CLI verbs, uninstall, all in a scratch
+HOME with a fake .deb (OMAANIA_SANDBOX=1: no systemctl, no hyprctl)."""
+import json
+import unittest
+
+from helpers import Sandbox, fake_deb
+
+
+class SetupUninstall(unittest.TestCase):
+    def setUp(self):
+        self.sb = Sandbox()
+        self.deb = self.sb.home.parent / (self.sb.home.name + ".deb")
+        self.sha = fake_deb(self.deb)
+        self.before = self.sb.files()
+
+    def tearDown(self):
+        self.deb.unlink(missing_ok=True)
+        self.sb.close()
+
+    def setup_(self, *extra):
+        r = self.sb.run("setup", "--yes", "--deb", str(self.deb), "--sha256", self.sha, "--tag", "vTEST", *extra)
+        self.assertIn("Ania Player", r.stdout, r.stdout + r.stderr)
+        return r
+
+    def test_full_cycle(self):
+        r = self.setup_()
+        h = self.sb.home
+        self.assertIn("sha256 verified", r.stdout)
+        launcher = (h / ".local/bin/aniaplayer").read_text()
+        self.assertIn("omaania: launcher generated", launcher)
+        self.assertNotIn(" /usr/share/aniaplayer", launcher.replace(str(h), "~"))
+        self.assertIn(str(h / ".local/opt/ania-player/usr/share/aniaplayer"), launcher)
+        hl = (h / ".config/hypr/hyprland.lua").read_text()
+        self.assertEqual(hl.count('pcall(require, "hypr.omaania")'), 1)
+        self.assertTrue((h / ".config/hypr/omaania.lua").is_file())
+        unit = (h / ".config/systemd/user/aniaplayer.service").read_text()
+        self.assertIn("managed-by: omaania", unit)
+        self.assertTrue((h / ".config/systemd/user/graphical-session.target.wants/aniaplayer.service").is_symlink())
+        vc = json.loads((h / ".config/aniaplayer/plugins/voice_assistant/voice_config.json").read_text())
+        self.assertEqual(vc["agent"]["conversation_mode"], "until_dismissed")
+        self.assertEqual(vc["chat"]["theme"], "auto")
+        self.assertNotIn("provider", vc["agent"])          # fake build has no omarchy-agent
+        self.assertNotIn("wake_word_enabled", vc["wake_word"])  # model not published
+
+        # idempotent: same record, still one include line
+        rec1 = json.loads((h / ".local/state/omaania/installed.json").read_text())
+        self.setup_()
+        rec2 = json.loads((h / ".local/state/omaania/installed.json").read_text())
+        rec1.pop("setup_at"), rec2.pop("setup_at")
+        self.assertEqual(rec1, rec2)
+        self.assertEqual((h / ".config/hypr/hyprland.lua").read_text().count("hypr.omaania"), 1)
+
+        # CLI verbs go to the (fake) player
+        st = json.loads(self.sb.run("status", "--json").stdout)
+        self.assertTrue(st["setup_ok"])
+        self.assertEqual(st["state"], "locked")
+        for args, expect in ((("lock", "--all"), "block --all"), (("unlock",), "unblock"),
+                             (("hide",), "hide"), (("settings", "avatar"), "settings avatar")):
+            self.assertEqual(self.sb.run(*args).returncode, 0)
+            self.assertEqual(self.sb.calls()[-1], expect)
+
+        # uninstall: back to exactly what was there, hyprland.lua byte-identical
+        r = self.sb.run("uninstall", "--yes", "--purge")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual((h / ".config/hypr/hyprland.lua").read_text(), Sandbox.HYPR)
+        self.assertEqual(self.sb.files(), self.before)
+
+    def test_existing_user_values_win(self):
+        vc = self.sb.home / ".config/aniaplayer/plugins/voice_assistant/voice_config.json"
+        vc.parent.mkdir(parents=True)
+        vc.write_text(json.dumps({"agent": {"provider": "ollama", "conversation_mode": "followup"},
+                                  "tts": {"voice_locale": "pt-BR"}}))
+        self.setup_()
+        data = json.loads(vc.read_text())
+        self.assertEqual(data["agent"]["provider"], "ollama")
+        self.assertEqual(data["agent"]["conversation_mode"], "followup")
+        self.assertEqual(data["tts"]["voice_locale"], "pt-BR")
+        self.assertEqual(data["chat"]["theme"], "auto")
+        self.sb.run("uninstall", "--yes")
+        data = json.loads(vc.read_text())             # the user's file stays, minus our keys
+        self.assertEqual(data, {"agent": {"provider": "ollama", "conversation_mode": "followup"},
+                                "tts": {"voice_locale": "pt-BR"}})
+
+    def test_bad_checksum_installs_nothing(self):
+        r = self.sb.run("setup", "--yes", "--deb", str(self.deb), "--sha256", "0" * 64)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("checksum mismatch", r.stdout)
+        self.assertFalse((self.sb.home / ".local/opt/ania-player").exists())
+        self.assertFalse((self.sb.home / ".local/bin/aniaplayer").exists())
+
+    def test_external_player_is_left_alone(self):
+        own = self.sb.home / ".local/bin/aniaplayer"
+        own.parent.mkdir(parents=True)
+        own.write_text("#!/bin/bash\necho mine\n")
+        self.setup_()
+        self.assertEqual(own.read_text(), "#!/bin/bash\necho mine\n")
+        self.assertFalse((self.sb.home / ".local/opt/ania-player").exists())
+        self.sb.run("uninstall", "--yes", "--purge")
+        self.assertEqual(own.read_text(), "#!/bin/bash\necho mine\n")
+
+    def test_foreign_unit_is_left_alone(self):
+        unit = self.sb.home / ".config/systemd/user/aniaplayer.service"
+        unit.parent.mkdir(parents=True)
+        unit.write_text("[Service]\nExecStart=/bin/true\n")
+        self.setup_()
+        self.sb.run("uninstall", "--yes", "--purge")
+        self.assertEqual(unit.read_text(), "[Service]\nExecStart=/bin/true\n")
+
+    def test_feature_build_gets_agent_brain(self):
+        self.sha = fake_deb(self.deb, features=True)
+        self.setup_()
+        vc = json.loads((self.sb.home / ".config/aniaplayer/plugins/voice_assistant/voice_config.json").read_text())
+        self.assertEqual(vc["agent"]["provider"], "omarchy-agent")
+
+    def test_own_key_never_in_argv_and_0600(self):
+        r = self.sb.run("setup", "--yes", "--deb", str(self.deb), "--sha256", self.sha, "--brain", "own-key",
+                        "--api-base", "https://api.example.com/v1", "--api-model", "m1",
+                        OMAANIA_API_KEY="sk-test-123")
+        self.assertIn("your own key", r.stdout)
+        key = self.sb.home / ".config/aniaplayer/omaania-api.key"
+        self.assertEqual(key.read_text().strip(), "sk-test-123")
+        self.assertEqual(key.stat().st_mode & 0o777, 0o600)
+        vc = json.loads((self.sb.home / ".config/aniaplayer/plugins/voice_assistant/voice_config.json").read_text())
+        self.assertEqual(vc["agent"]["provider"], "openai")
+        self.assertEqual(vc["agent"]["api_key_file"], str(key))
+        self.assertNotIn("sk-test-123", json.dumps(vc))
+
+
+if __name__ == "__main__":
+    unittest.main()
