@@ -18,7 +18,7 @@ PLUGIN_ID = "io.github.rob-d3v.omaania"
 PLAYER_REPO = "rob-d3v/ania-player"
 DEB_ASSET = "AniaPlayerSetup.deb"
 SUMS_ASSET = "SHA256SUMS.txt"
-MCP_PACKAGE = "ania-mcp@0.1.0"
+MCP_PACKAGE = "ania-mcp@0.1.1"
 UNIT_NAME = "aniaplayer.service"
 UNIT_MARKER = "# managed-by: omaania"
 

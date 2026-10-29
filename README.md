@@ -72,7 +72,7 @@ Setup checks each step and only acts when something is missing:
    and turns autostart on (`--no-autostart` to skip). An `aniaplayer.service`
    you wrote yourself is left untouched.
 8. **Ania tools for your agent (optional, asks first).** Runs
-   `npx -y ania-mcp@0.1.0 install <your agent>` so your agent can create and
+   `npx -y ania-mcp@0.1.1 install <your agent>` so your agent can create and
    switch avatars. Supported today: Claude Code (setup then also runs
    `claude mcp add --transport http --scope user ania …`), Gemini CLI, Cursor;
    for other agents setup prints the MCP URL to add by hand.
@@ -191,7 +191,7 @@ ships and only relies on what is there (`omaania doctor` lists it).
 - No sudo, no `pkexec`, no package manager, no edits outside your home.
 - An API key you enter is read from the prompt (or `OMAANIA_API_KEY`), never
   from argv, and stored `0600`.
-- `npx -y ania-mcp@0.1.0` runs only if you say yes, pinned to that version.
+- `npx -y ania-mcp@0.1.1` runs only if you say yes, pinned to that version.
 - Every file setup creates is listed in `~/.local/state/omaania/installed.json`.
 
 ## Privacy
