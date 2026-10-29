@@ -1,0 +1,13 @@
+#!/bin/bash
+# omaania launcher: runs the plugin's Python package (stdlib only) with the
+# system python3. No virtualenv, nothing downloaded to run omaania itself.
+set -euo pipefail
+
+self=$(readlink -f "${BASH_SOURCE[0]}")
+root=$(dirname "$(dirname "$self")")
+
+export PYTHONPATH="$root/src${PYTHONPATH:+:$PYTHONPATH}"
+# Keep bytecode out of the plugin folder: the shell hot-reloads a plugin
+# whenever a file under ~/.config/omarchy/plugins/ changes.
+export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME:-$HOME/.cache}/omaania/pycache"
+exec python3 -m omaania "$@"
