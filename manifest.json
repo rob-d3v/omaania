@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.rob-d3v.omaania",
+  "name": "omaania",
+  "version": "0.1.0",
+  "author": "rob-d3v",
+  "license": "Apache-2.0",
+  "description": "Ania Player for Omarchy: a talking desktop avatar and voice assistant that answers with your Omarchy agent. One-click setup from the bar. Unofficial community plugin.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Widget.qml"
+  },
+  "barWidget": {
+    "displayName": "omaania",
+    "description": "Ania Player avatar state. Click shows or hides the avatar; right click opens the menu: lock position, change avatar, marketplace, credits, briefing, biometric unlock, settings and logs.",
+    "category": "Productivity",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
