@@ -99,6 +99,39 @@ class SetupUninstall(unittest.TestCase):
         self.sb.run("uninstall", "--yes", "--purge")
         self.assertEqual(own.read_text(), "#!/bin/bash\necho mine\n")
 
+    def test_external_player_config_and_rules_are_left_alone(self):
+        h = self.sb.home
+        own = h / ".local/bin/aniaplayer"
+        own.parent.mkdir(parents=True)
+        own.write_text("#!/bin/bash\necho mine\n")
+        vc = h / ".config/aniaplayer/plugins/voice_assistant/voice_config.json"
+        vc.parent.mkdir(parents=True)
+        vc.write_text('{"agent": {"provider": "openai"}, "stt": {"language": "pt"}}\n')
+        rules = h / ".config/hypr/aniaplayer.lua"
+        rules.parent.mkdir(parents=True, exist_ok=True)
+        rules.write_text('-- my rules: class "^Ania Player$"\n')
+        main = h / ".config/hypr/hyprland.lua"
+        main_before = main.read_text() if main.exists() else None
+        if main_before is None:
+            main.write_text("-- stub\n")
+            main_before = "-- stub\n"
+        r = self.setup_()
+        self.assertIn("leaves its settings alone", r.stdout)
+        self.assertIn("adds no second set", r.stdout)
+        self.assertEqual(json.loads(vc.read_text()), {"agent": {"provider": "openai"}, "stt": {"language": "pt"}})
+        self.assertFalse((h / ".config/hypr/omaania.lua").exists())
+        self.assertEqual(main.read_text(), main_before)
+        self.sb.run("uninstall", "--yes", "--purge")
+        self.assertEqual(json.loads(vc.read_text()), {"agent": {"provider": "openai"}, "stt": {"language": "pt"}})
+
+    def test_uninstall_leaves_no_empty_folders(self):
+        self.setup_()
+        self.sb.run("uninstall", "--yes", "--purge")
+        h = self.sb.home
+        for d in (".local/share/icons", ".local/share/applications", ".local/opt",
+                  ".config/systemd/user/graphical-session.target.wants"):
+            self.assertFalse((h / d).exists(), d)
+
     def test_foreign_unit_is_left_alone(self):
         unit = self.sb.home / ".config/systemd/user/aniaplayer.service"
         unit.parent.mkdir(parents=True)

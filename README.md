@@ -44,7 +44,9 @@ Setup checks each step and only acts when something is missing:
    asset), and unpacks it with `bsdtar` into `~/.local/opt/ania-player`. If a
    release ever publishes no checksum, setup prints the sha256 it computed so
    you can compare it with the release page. If you already have Ania Player
-   installed some other way, setup uses it and leaves it alone.
+   installed some other way, setup uses it and leaves it alone: its
+   launcher, its service, its settings (step 5) and, when you already have
+   window rules for it, its Hyprland rules (step 3).
 2. **Launcher.** Writes `~/.local/bin/aniaplayer` (the package's launcher,
    pointed at `~/.local/opt`), an app menu entry and the icon, and links
    `~/.local/bin/omaania`.
@@ -67,8 +69,9 @@ Setup checks each step and only acts when something is missing:
    you wrote yourself is left untouched.
 8. **Ania tools for your agent (optional, asks first).** Runs
    `npx -y ania-mcp@0.1.0 install <your agent>` so your agent can create and
-   switch avatars. Supported today: Claude Code, Gemini CLI, Cursor; for other
-   agents setup prints the MCP URL to add by hand.
+   switch avatars. Supported today: Claude Code (setup then also runs
+   `claude mcp add --transport http --scope user ania …`), Gemini CLI, Cursor;
+   for other agents setup prints the MCP URL to add by hand.
 
 Non-interactive flags: `--yes`, `--brain omarchy-agent|own-key`,
 `--api-base`, `--api-model` (the key comes from the prompt or the
@@ -203,6 +206,7 @@ ships and only relies on what is there (`omaania doctor` lists it).
 | Icon is dimmed | The player isn't running: click it, or `systemctl --user start aniaplayer` |
 | The avatar has a frame or tiles | `omaania doctor` (rules file and the `hypr.omaania` line), then `hyprctl reload` |
 | Two avatars appear at login | Remove `~/.config/autostart/aniaplayer.desktop` (the service already starts it) |
+| One phrase wakes both the avatar and omawake | Give them different wake words (in omawake: `omawake wake <id>`) |
 | It doesn't wake on “Hey Omarchy” | The model may not be published yet (`omaania doctor`); use `ctrl+shift+space` |
 | Anything else | `omaania doctor`, `omaania logs --open` |
 

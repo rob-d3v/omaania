@@ -170,6 +170,10 @@ def step_hypr(rec: Record, o) -> bool:
     if o.no_hypr:
         ok("skipped (--no-hypr)")
         return True
+    others = hypr.other_rules()
+    if others and not paths.hypr_rules.exists() and not hypr.has_include():
+        ok(f"your own Ania Player rules are already in {others[0]}; omaania adds no second set")
+        return True
     existed = paths.hypr_rules.exists()
     wrote, added, note = hypr.install()
     if note:
@@ -242,8 +246,13 @@ def _own_key(ui: UI, o) -> dict | None:
 
 def step_assistant(ui: UI, rec: Record, o, wake_ready: bool, wake_model: str) -> bool:
     _step(5, "Voice assistant defaults")
-    feats = player.features() if paths.share.is_dir() else {}
     agent = default_agent()
+    if rec.data.get("player") == "external" and paths.voice_config.exists() and not o.brain:
+        ok("your Ania Player is already configured: omaania leaves its settings alone"
+           " (choose a brain anyway with: omaania setup --brain omarchy-agent|own-key)")
+        save_settings({"brain": "external"})
+        return True
+    feats = player.features() if paths.share.is_dir() and rec.data.get("player") != "external" else {}
     brain = o.brain or ui.choose(
         "Who answers when you talk to the avatar?",
         [("omarchy-agent", f"My Omarchy default agent ({agent or 'none set yet'})"),
@@ -381,6 +390,14 @@ def step_mcp(ui: UI, rec: Record, o) -> bool:
         rec.set("mcp_client", client)
         return True
     r = subprocess.run(["npx", "-y", MCP_PACKAGE, "install", client])
+    if r.returncode == 0 and client == "claude-code":
+        # ania-mcp 0.1.0 only PRINTS the command for Claude Code; run it here.
+        if not shutil.which("claude"):
+            warn(f"run this once Claude Code is installed: claude mcp add --transport http --scope user ania {MCP_URL}")
+            return False
+        have = subprocess.run(["claude", "mcp", "get", "ania"], capture_output=True, text=True)
+        if have.returncode != 0:
+            r = subprocess.run(["claude", "mcp", "add", "--transport", "http", "--scope", "user", "ania", MCP_URL])
     if r.returncode == 0:
         rec.set("mcp_client", client)
         ok(f"{agent} has the Ania tools (sign-in opens in your browser the first time)")
@@ -427,6 +444,22 @@ def _rm(p: Path) -> bool:
     except OSError as e:
         warn(f"could not remove {p}: {e}")
         return False
+
+
+def _prune_empty(dirs) -> None:
+    """Remove folders setup left empty (e.g. icons/hicolor/256x256/apps), walking
+    up while they stay empty. Never HOME, ~/.config, ~/.local or their direct
+    XDG children, and never a folder with anything in it."""
+    keep = {Path.home(), Path.home() / ".config", Path.home() / ".local", Path.home() / ".local/share",
+            Path.home() / ".local/state", Path.home() / ".local/bin", Path.home() / ".cache",
+            paths.unit_dir, paths.hypr_dir, paths.player_cfg}
+    for d in sorted({Path(x) for x in dirs}, key=lambda p: -len(p.parts)):
+        while d not in keep and d != d.parent and str(d).startswith(str(Path.home()) + os.sep):
+            try:
+                d.rmdir()               # only succeeds when empty
+            except OSError:
+                break
+            d = d.parent
 
 
 def run_uninstall(o) -> int:
@@ -497,5 +530,7 @@ def run_uninstall(o) -> int:
     for d in (paths.cache_dir, paths.config_dir, paths.state_dir):
         if d.exists():
             _rm(d)
+    _prune_empty([Path(f).parent for f in files] + [paths.unit_wants.parent, paths.icon_file.parent,
+                                                     paths.desktop_file.parent, paths.opt.parent])
     print(f"\nTo remove the bar widget too: omarchy plugin remove {PLUGIN_ID}")
     return 0

@@ -331,7 +331,7 @@ Panel {
           Repeater {
             model: [
               { what: "marketplace", icon: "", label: "Marketplace (free avatars)" },
-              { what: "credits", icon: "", label: "Get credits" },
+              { what: "credits", icon: "", label: "Get credits" },
               { what: "create-avatar", icon: "", label: "Create avatar with your AI" },
               { what: "create-wakeword", icon: "", label: "Create wake word" }
             ]

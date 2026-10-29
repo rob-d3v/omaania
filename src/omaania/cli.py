@@ -246,7 +246,7 @@ def cmd_doctor(a) -> int:
     ext = player.external_player()
     print("omaania doctor")
     line(player.installed() or bool(ext), f"Ania Player: {ext or paths.opt}", "omaania setup")
-    if player.installed():
+    if player.installed() and not ext:
         info = player.release_info()
         line(bool(info.get("sha256")), f"release {info.get('tag', '?')} sha256 {info.get('sha256', '?')[:16]}…"
              f" ({info.get('checksum_source', 'unknown')})")
@@ -255,10 +255,14 @@ def cmd_doctor(a) -> int:
         need = [k for k in ("omarchy_agent", "conversation_mode", "chat_theme", "briefing_edit") if not feats.get(k)]
         line(not need, "player features: " + ", ".join(f"{k}={'yes' if v else 'no'}" for k, v in feats.items()),
              "needs a newer Ania Player release for: " + ", ".join(need))
-    line(hypr.rules_current(), f"Hyprland rules {paths.hypr_rules}", "omaania setup")
-    line(hypr.has_include(), f"hyprland.lua loads them ({hypr.INCLUDE})", "omaania setup")
-    for other in hypr.other_rules():
-        line(False, f"second rule file for the player: {other}", "keep one of them")
+    others = hypr.other_rules()
+    if others and not paths.hypr_rules.exists() and not hypr.has_include():
+        line(True, f"Hyprland rules: your own ({', '.join(others)})")
+    else:
+        line(hypr.rules_current(), f"Hyprland rules {paths.hypr_rules}", "omaania setup")
+        line(hypr.has_include(), f"hyprland.lua loads them ({hypr.INCLUDE})", "omaania setup")
+        for other in others:
+            line(False, f"second rule file for the player: {other}", "keep one of them")
     unit = paths.unit_file.exists()
     line(unit, f"systemd unit {paths.unit_file}", "omaania setup")
     if unit:

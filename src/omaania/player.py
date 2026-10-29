@@ -115,7 +115,9 @@ def unpack(deb: Path, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=str(dest.parent), prefix=".omaania-deb-") as t:
         t = Path(t)
-        subprocess.run(["bsdtar", "-xf", str(deb), "-C", str(t)], check=True)
+        r = subprocess.run(["bsdtar", "-xf", str(deb), "-C", str(t)], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise RuntimeError(f"{deb.name} is not a valid .deb (bsdtar: {r.stderr.strip()[:200]})")
         data = sorted(t.glob("data.tar*"))
         if not data:
             raise RuntimeError(f"{deb.name} is not a .deb (no data.tar.*)")
