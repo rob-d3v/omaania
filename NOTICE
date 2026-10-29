@@ -1,0 +1,17 @@
+omaania
+Copyright 2026 rob-d3v
+
+Unofficial community plugin, not affiliated with Omarchy or 37signals.
+
+omaania does not bundle Ania Player. `omaania setup` downloads the official
+AniaPlayerSetup.deb from the latest GitHub release of rob-d3v/ania-player,
+checks its sha256 against the release's SHA256SUMS.txt, and unpacks it into
+your home folder. Ania Player is distributed under its own licence terms,
+shipped inside that package.
+
+The "Hey Omarchy" wake word bundle is shared with the omawake plugin
+(Apache-2.0) and uses the openWakeWord front-end models (Apache-2.0,
+David Scripka) and Silero VAD (MIT, Silero Team).
+
+The optional `ania-mcp` npm package (MIT) is run with npx only after you
+agree to it during setup.
