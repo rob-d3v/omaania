@@ -24,7 +24,8 @@ import time
 from pathlib import Path
 
 from . import assets, hypr, player, playercfg
-from .paths import CLI, MCP_PACKAGE, PLUGIN_ID, UNIT_MARKER, UNIT_NAME, cache_home, paths, state_home
+from .paths import (CLI, MCP_PACKAGE, PLUGIN_ID, UNIT_MARKER, UNIT_NAME, cache_home, config_home, paths,
+                    state_home)
 from .util import UI, Record, atomic_write, default_agent, head, ok, read_json, systemctl, warn
 
 STEPS = 8
@@ -195,12 +196,29 @@ def step_hypr(rec: Record, o) -> bool:
     return True
 
 
-def step_wake(rec: Record, o) -> tuple[bool, str]:
+def omawake_installed() -> bool:
+    return bool(shutil.which("omawake")) or (config_home() / "omawake").is_dir() \
+        or paths.omawake_models.parent.is_dir()
+
+
+def step_wake(rec: Record, o, ui: UI | None = None) -> tuple[bool, str]:
     _step(4, "Wake word “Hey Omarchy”")
     model = assets.wake_id()
     if o.no_wake:
         ok("skipped (--no-wake): the keyboard shortcut ctrl+shift+space still talks to the avatar")
         return False, model
+    if omawake_installed():
+        # One phrase must wake one thing. omawake skips any word the running
+        # player listens for, so giving it to the avatar needs nothing else.
+        who = (ui or UI(True)).choose(
+            "omawake is installed too. Who should answer “Hey Omarchy”?",
+            [("player", "the avatar (Ania Player); omawake leaves this word to it automatically"),
+             ("omawake", "omawake; the avatar keeps the ctrl+shift+space shortcut")], "player")
+        if who == "omawake":
+            ok("left to omawake: the avatar answers ctrl+shift+space (setup --no-wake does the same)")
+            return False, model
+        ok("the avatar gets the wake word; omawake skips it while Ania Player runs"
+           " (choose omawake instead: omaania setup --no-wake)")
     src, label = assets.find_wake_bundle(model)
     if src is None:
         try:
@@ -417,7 +435,7 @@ def run_setup(o) -> int:
         return 1
     for fn in (lambda: step_launcher(rec), lambda: step_hypr(rec, o)):
         problems += 0 if fn() else 1
-    wake_ready, model = step_wake(rec, o)
+    wake_ready, model = step_wake(rec, o, ui)
     for fn in (lambda: step_assistant(ui, rec, o, wake_ready, model), lambda: step_avatar(rec),
                lambda: step_service(rec, o), lambda: step_mcp(ui, rec, o)):
         problems += 0 if fn() else 1

@@ -59,6 +59,10 @@ Setup checks each step and only acts when something is missing:
    [omawake](https://github.com/rob-d3v/omawake) when it is installed,
    otherwise downloads it (pinned sha256) into
    `~/.local/share/aniaplayer/wakeword/`, which omawake also reads.
+   When omawake is installed, setup asks which of the two answers the wake
+   word (default: the avatar). omawake skips any word the running player
+   listens for, so one phrase never wakes both; `--no-wake` leaves the word
+   to omawake.
 5. **Voice assistant defaults.** Asks who answers: your Omarchy default agent
    (default) or your own API key. Fills only the *missing* keys of the
    player's config, never overwriting a value you set.

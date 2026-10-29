@@ -66,6 +66,15 @@ class SetupUninstall(unittest.TestCase):
         self.assertEqual((h / ".config/hypr/hyprland.lua").read_text(), Sandbox.HYPR)
         self.assertEqual(self.sb.files(), self.before)
 
+    def test_omawake_installed_gets_asked_who_owns_the_wake_word(self):
+        r = self.setup_()
+        self.assertNotIn("omawake skips it", r.stdout)
+        (self.sb.home / ".config/omawake").mkdir(parents=True)
+        r = self.setup_()
+        self.assertIn("the avatar gets the wake word; omawake skips it", r.stdout)
+        r = self.setup_("--no-wake")
+        self.assertNotIn("omawake skips it", r.stdout)
+
     def test_existing_user_values_win(self):
         vc = self.sb.home / ".config/aniaplayer/plugins/voice_assistant/voice_config.json"
         vc.parent.mkdir(parents=True)
