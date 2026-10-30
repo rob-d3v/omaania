@@ -12,6 +12,8 @@ Omarchy style shows its state and holds the whole menu.
 > A free “Hey Omarchy” wake word is coming soon: the model is still training
 > and can't be downloaded yet. Until then, use the shortcut or your own wake
 > word (works today).
+>
+> **[Help train “Hey Omarchy” — donate your voice (2 min)](https://aniamodels.shop/omarchy-voice)**
 
 > **Unofficial community plugin, not affiliated with Omarchy or 37signals.**
 
