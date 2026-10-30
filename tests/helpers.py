@@ -84,7 +84,7 @@ class Sandbox:
 
     def env(self, **extra) -> dict:
         env = {"HOME": str(self.home), "XDG_RUNTIME_DIR": str(self.home / "run"),
-               "OMAANIA_SANDBOX": "1", "PATH": "/usr/local/bin:/usr/bin:/bin", "LANG": "C.UTF-8"}
+               "OMAANIA_SANDBOX": "1", "OMAANIA_OFFLINE": "1", "PATH": "/usr/local/bin:/usr/bin:/bin", "LANG": "C.UTF-8"}
         env.update(extra)
         return env
 

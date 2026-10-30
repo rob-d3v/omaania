@@ -341,6 +341,9 @@ def step_assistant(ui: UI, rec: Record, o, wake_ready: bool, wake_model: str) ->
 def step_avatar(rec: Record) -> bool:
     _step(6, "Default avatar")
     e = assets.default_avatar()
+    if os.environ.get("OMAANIA_OFFLINE", "") == "1":
+        ok(f"{e.get('name', 'Glyph')}: not downloaded (OMAANIA_OFFLINE=1)")
+        return True
     if e.get("status") == "available" and e.get("url") and e.get("sha256"):
         dest = paths.avatars_dir / e.get("file", "Glyph.ania")
         if not dest.exists():
@@ -348,9 +351,10 @@ def step_avatar(rec: Record) -> bool:
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 assets._fetch(e["url"], e["sha256"], dest)
                 rec.add(dest, "avatar")
-            except Exception as ex:  # noqa: BLE001
-                warn(f"{e.get('name')}: {ex}")
-                return False
+            except Exception as ex:  # noqa: BLE001 - optional: the player keeps its own default
+                warn(f"{e.get('name')} not downloaded ({ex}); Ania Player opens with its own default."
+                     " Re-run `omaania setup` later to get it.")
+                return True
         cfg = read_json(paths.player_config)
         if not cfg.get("startup_file"):
             created = not paths.player_config.exists()

@@ -76,8 +76,9 @@ Setup checks each step and only acts when something is missing:
 5. **Voice assistant defaults.** Asks who answers: your Omarchy default agent
    (default) or your own API key. Fills only the *missing* keys of the
    player's config, never overwriting a value you set.
-6. **Default avatar.** A free avatar, “Glyph”, is being made. Until it ships
-   the player opens with its own default.
+6. **Default avatar.** Downloads “Glyph”, a free retro terminal companion
+   (sha256-checked, ~94 MB), and makes it the startup avatar only if you have
+   not chosen one. It is also free on the Ania marketplace.
 7. **Background service.** Installs `aniaplayer.service` (systemd user unit)
    and turns autostart on (`--no-autostart` to skip). An `aniaplayer.service`
    you wrote yourself is left untouched.
