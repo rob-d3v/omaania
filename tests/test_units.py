@@ -32,7 +32,7 @@ class Units(unittest.TestCase):
 
     def test_urls_are_https_on_known_hosts(self):
         for url in cli.URLS.values():
-            self.assertTrue(url.startswith(("https://aniamodels.shop/", "https://github.com/rob-d3v/")), url)
+            self.assertTrue(url.startswith(("https://avatar.diatech.solutions/", "https://github.com/rob-d3v/")), url)
 
 
 if __name__ == "__main__":

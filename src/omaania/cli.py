@@ -14,7 +14,7 @@ from . import __version__, assets, hypr, player, playercfg
 from .paths import CLI, MCP_PACKAGE, UNIT_NAME, paths
 from .util import default_agent, read_json, systemctl
 
-SITE = "https://aniamodels.shop"
+SITE = "https://avatar.diatech.solutions"
 URLS = {
     "marketplace": f"{SITE}/marketplace?category=free",   # free avatars
     "credits": f"{SITE}/reports?tab=wallet",              # wallet: balance + add funds
@@ -350,7 +350,7 @@ def main(argv=None) -> int:
     s = sub.add_parser("avatar", help="switch to this .ania avatar")
     s.add_argument("file")
     s.set_defaults(fn=cmd_avatar)
-    s = sub.add_parser("open", help="open an aniamodels.shop page")
+    s = sub.add_parser("open", help="open an avatar.diatech.solutions page")
     s.add_argument("what", choices=sorted(URLS))
     s.add_argument("--print", action="store_true", help="print the URL instead of opening it")
     s.set_defaults(fn=cmd_open)

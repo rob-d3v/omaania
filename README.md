@@ -2,7 +2,7 @@
 
 **A talking avatar on your Omarchy desktop that answers with your own AI agent.**
 
-omaania installs and controls [Ania Player](https://aniamodels.shop): an
+omaania installs and controls [Ania Player](https://avatar.diatech.solutions): an
 animated avatar that floats over your desktop, listens when you press
 `ctrl+shift+space` (or say a wake word you already have, such as “Ok Ania”),
 sends what you say to your Omarchy default agent (Codex, Claude Code,
@@ -13,7 +13,7 @@ Omarchy style shows its state and holds the whole menu.
 > and can't be downloaded yet. Until then, use the shortcut or your own wake
 > word (works today).
 >
-> **[Help train “Hey Omarchy” — donate your voice (2 min)](https://aniamodels.shop/omarchy-voice)**
+> **[Help train “Hey Omarchy” — donate your voice (2 min)](https://avatar.diatech.solutions/omarchy-voice)**
 
 > **Unofficial community plugin, not affiliated with Omarchy or 37signals.**
 
@@ -149,10 +149,10 @@ player simply ignores keys it does not know.
 | Lock / Unlock position | `aniaplayer block` / `unblock` (no dragging, clicks pass through) |
 | Lock all / Unlock all | `aniaplayer block --all` / `unblock --all` |
 | Change avatar… | lists your `.ania` files, then `aniaplayer open <file>` |
-| Marketplace (free avatars) | opens aniamodels.shop/marketplace?category=free |
-| Get credits | opens your wallet, aniamodels.shop/reports?tab=wallet |
-| Create avatar with your AI | opens aniamodels.shop/connect-ai (MCP how-to) |
-| Create wake word | opens aniamodels.shop/create-wakeword |
+| Marketplace (free avatars) | opens avatar.diatech.solutions/marketplace?category=free |
+| Get credits | opens your wallet, avatar.diatech.solutions/reports?tab=wallet |
+| Create avatar with your AI | opens avatar.diatech.solutions/connect-ai (MCP how-to) |
+| Create wake word | opens avatar.diatech.solutions/create-wakeword |
 | Briefing on/off | needs a player update (no CLI verb yet) |
 | Edit briefing… | `aniaplayer biometria briefing editar` (newer player) |
 | Biometric unlock on/off | `aniaplayer biometria ligar` / `desligar`; first time opens the enrolment window |

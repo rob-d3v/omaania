@@ -38,7 +38,7 @@ MCP_SIGNIN = {"claude-code": "inside Claude Code: /mcp -> ania -> Authenticate",
               "gemini": "inside gemini: /mcp auth ania",
               "codex": "run: codex mcp login ania",
               "opencode": "run: opencode mcp auth ania"}
-MCP_URL = "https://mcp.aniamodels.shop/mcp/ania"
+MCP_URL = "https://mcp-avatar.diatech.solutions/mcp/ania"
 
 UNIT = """[Unit]
 {marker} (https://github.com/rob-d3v/omaania). `omaania uninstall` removes it.
