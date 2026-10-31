@@ -66,13 +66,13 @@ Setup checks each step and only acts when something is missing:
    the question). Say no, or pass `--no-hypr`, and your Hyprland files stay
    untouched.
 4. **Wake word “Hey Omarchy” (coming soon).** Once the model is published, reuses the bundle from
-   [omawake](https://github.com/rob-d3v/omawake) when it is installed,
+   [omahey](https://github.com/rob-d3v/omahey) when it is installed,
    otherwise downloads it (pinned sha256) into
-   `~/.local/share/aniaplayer/wakeword/`, which omawake also reads.
-   When omawake is installed, setup asks which of the two answers the wake
-   word (default: the avatar). omawake skips any word the running player
+   `~/.local/share/aniaplayer/wakeword/`, which omahey also reads.
+   When omahey is installed, setup asks which of the two answers the wake
+   word (default: the avatar). omahey skips any word the running player
    listens for, so one phrase never wakes both; `--no-wake` leaves the word
-   to omawake.
+   to omahey.
 5. **Voice assistant defaults.** Asks who answers: your Omarchy default agent
    (default) or your own API key. Fills only the *missing* keys of the
    player's config, never overwriting a value you set.
@@ -223,7 +223,7 @@ ships and only relies on what is there (`omaania doctor` lists it).
 | Icon is dimmed | The player isn't running: click it, or `systemctl --user start aniaplayer` |
 | The avatar has a frame or tiles | `omaania doctor` (rules file and the `hypr.omaania` line), then `hyprctl reload` |
 | Two avatars appear at login | Remove `~/.config/autostart/aniaplayer.desktop` (the service already starts it) |
-| One phrase wakes both the avatar and omawake | Give them different wake words (in omawake: `omawake wake <id>`) |
+| One phrase wakes both the avatar and omahey | Give them different wake words (in omahey: `omahey wake <id>`) |
 | It doesn't wake on “Hey Omarchy” | The model isn't published yet (coming soon); use `ctrl+shift+space` or your own wake word |
 | Anything else | `omaania doctor`, `omaania logs --open` |
 

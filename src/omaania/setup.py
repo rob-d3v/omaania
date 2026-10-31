@@ -214,9 +214,10 @@ def step_hypr(rec: Record, o, ui: UI | None = None) -> bool:
     return True
 
 
-def omawake_installed() -> bool:
-    return bool(shutil.which("omawake")) or (config_home() / "omawake").is_dir() \
-        or paths.omawake_models.parent.is_dir()
+def omahey_installed() -> bool:
+    # omawake is omahey's name before 0.3.0; an old install still owns the mic.
+    return any(shutil.which(n) or (config_home() / n).is_dir() for n in ("omahey", "omawake")) \
+        or paths.omahey_models.parent.is_dir() or paths.omawake_models.parent.is_dir()
 
 
 def step_wake(rec: Record, o, ui: UI | None = None) -> tuple[bool, str]:
@@ -227,18 +228,18 @@ def step_wake(rec: Record, o, ui: UI | None = None) -> tuple[bool, str]:
     if o.no_wake:
         ok("skipped (--no-wake): the keyboard shortcut ctrl+shift+space still talks to the avatar")
         return False, model
-    if omawake_installed():
-        # One phrase must wake one thing. omawake skips any word the running
+    if omahey_installed():
+        # One phrase must wake one thing. omahey skips any word the running
         # player listens for, so giving it to the avatar needs nothing else.
         who = (ui or UI(True)).choose(
-            f"omawake is installed too. Who should answer “{phrase}”?",
-            [("player", "the avatar (Ania Player); omawake leaves this word to it automatically"),
-             ("omawake", "omawake; the avatar keeps the ctrl+shift+space shortcut")], "player")
-        if who == "omawake":
-            ok("left to omawake: the avatar answers ctrl+shift+space (setup --no-wake does the same)")
+            f"omahey is installed too. Who should answer “{phrase}”?",
+            [("player", "the avatar (Ania Player); omahey leaves this word to it automatically"),
+             ("omahey", "omahey; the avatar keeps the ctrl+shift+space shortcut")], "player")
+        if who == "omahey":
+            ok("left to omahey: the avatar answers ctrl+shift+space (setup --no-wake does the same)")
             return False, model
-        ok("the avatar gets the wake word; omawake skips it while Ania Player runs"
-           " (choose omawake instead: omaania setup --no-wake)")
+        ok("the avatar gets the wake word; omahey skips it while Ania Player runs"
+           " (choose omahey instead: omaania setup --no-wake)")
     src, label = assets.find_wake_bundle(model)
     if src is None:
         try:
@@ -535,8 +536,8 @@ def run_uninstall(o) -> int:
             continue
         if kind in ("player", "launcher") and not own_player:
             continue
-        if kind == "wake-bundle-shared" and paths.omawake_models.parent.exists():
-            print(f"  · kept {p}: omawake uses it too")
+        if kind == "wake-bundle-shared" and omahey_installed():
+            print(f"  · kept {p}: omahey uses it too")
             continue
         if kind == "launcher" and not player.launcher_is_ours(p):
             continue

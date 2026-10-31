@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """Data files omaania places for the player: the "Hey Omarchy" wake word
-bundle (shared with omawake) and the default avatar slot. Data only: ONNX,
+bundle (shared with omahey) and the default avatar slot. Data only: ONNX,
 JSON and .ania files, never code. Stdlib only."""
 from __future__ import annotations
 
@@ -46,6 +46,7 @@ def find_wake_bundle(model: str | None = None) -> tuple[Path | None, str]:
     model = model or wake_id()
     for d, label in ((paths.player_wake_dir / model, "already in Ania Player"),
                      (paths.shared_wake_dir / model, "shared folder"),
+                     (paths.omahey_models / model, "from omahey"),
                      (paths.omawake_models / model, "from omawake")):
         if _is_bundle(d):
             return d, label
@@ -67,7 +68,7 @@ def _fetch(url: str, sha: str, dest: Path) -> None:
 
 
 def download_wake_bundle(log=print) -> Path:
-    """Fetch the catalog bundle into the shared folder (omawake reads it too)."""
+    """Fetch the catalog bundle into the shared folder (omahey reads it too)."""
     e = catalog().get("wake_word") or {}
     if e.get("status") != "available":
         raise RuntimeError(f"“{e.get('phrase', 'Hey Omarchy')}” is not published yet ({e.get('status')})")

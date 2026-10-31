@@ -9,7 +9,7 @@ checks its sha256 against the release's SHA256SUMS.txt, and unpacks it into
 your home folder. Ania Player is distributed under its own licence terms,
 shipped inside that package.
 
-The "Hey Omarchy" wake word bundle is shared with the omawake plugin
+The "Hey Omarchy" wake word bundle is shared with the omahey plugin
 (Apache-2.0) and uses the openWakeWord front-end models (Apache-2.0,
 David Scripka) and Silero VAD (MIT, Silero Team).
 

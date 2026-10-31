@@ -114,14 +114,19 @@ class SetupUninstall(unittest.TestCase):
         self.assertIn("Wake word “Hey Omarchy” (free model coming soon, not published yet)", r.stdout)
         self.assertIn("Press ctrl+shift+space to talk.", r.stdout)
 
-    def test_omawake_installed_gets_asked_who_owns_the_wake_word(self):
+    def test_omahey_installed_gets_asked_who_owns_the_wake_word(self):
         r = self.setup_()
-        self.assertNotIn("omawake skips it", r.stdout)
+        self.assertNotIn("omahey skips it", r.stdout)
+        (self.sb.home / ".config/omahey").mkdir(parents=True)
+        r = self.setup_()
+        self.assertIn("the avatar gets the wake word; omahey skips it", r.stdout)
+        r = self.setup_("--no-wake")
+        self.assertNotIn("omahey skips it", r.stdout)
+
+    def test_omawake_from_before_the_rename_counts_as_omahey(self):
         (self.sb.home / ".config/omawake").mkdir(parents=True)
         r = self.setup_()
-        self.assertIn("the avatar gets the wake word; omawake skips it", r.stdout)
-        r = self.setup_("--no-wake")
-        self.assertNotIn("omawake skips it", r.stdout)
+        self.assertIn("the avatar gets the wake word; omahey skips it", r.stdout)
 
     def test_existing_user_values_win(self):
         vc = self.sb.home / ".config/aniaplayer/plugins/voice_assistant/voice_config.json"

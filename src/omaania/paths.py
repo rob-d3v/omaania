@@ -129,14 +129,16 @@ class P:
     @property
     def biometria_config(self) -> Path: return self.player_data / "biometria/config.json"
 
-    # ---- wake word bundles shared with omawake
+    # ---- wake word bundles shared with omahey (formerly omawake)
     @property
     def shared_wake_dir(self) -> Path:
-        # omawake scans ~/.local/share/aniaplayer/wakeword on its own, so a
+        # omahey scans ~/.local/share/aniaplayer/wakeword on its own, so a
         # bundle placed here serves both plugins.
         return self.player_data / "wakeword"
     @property
-    def omawake_models(self) -> Path: return data_home() / "omawake/models"
+    def omahey_models(self) -> Path: return data_home() / "omahey/models"
+    @property
+    def omawake_models(self) -> Path: return data_home() / "omawake/models"  # before the rename
 
     # ---- Omarchy
     @property
