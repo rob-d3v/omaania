@@ -170,6 +170,7 @@ Panel {
           implicitHeight: Math.max(heroIcon.implicitHeight, heroText.implicitHeight)
 
           Text {
+            textFormat: Text.PlainText
             id: heroIcon
             text: root.glyph()
             color: root.hot ? Commons.Color.accent : root.bar.foreground
@@ -186,6 +187,7 @@ Panel {
             anchors.verticalCenter: parent.verticalCenter
             spacing: Style.space(2)
             Text {
+              textFormat: Text.PlainText
               text: "Ania Player"
               color: root.bar.foreground
               font.family: root.bar.fontFamily
@@ -193,6 +195,7 @@ Panel {
               font.bold: true
             }
             Text {
+              textFormat: Text.PlainText
               width: parent.width
               elide: Text.ElideRight
               text: (root.label() + (root.info.avatar ? " · " + root.info.avatar : "")).toUpperCase()
@@ -310,6 +313,7 @@ Panel {
             }
           }
           Text {
+            textFormat: Text.PlainText
             visible: root.avatarsOpen && root.avatars.length === 0
             width: parent.width
             wrapMode: Text.Wrap
@@ -368,12 +372,14 @@ Panel {
               anchors.rightMargin: Style.space(8)
               anchors.verticalCenter: parent.verticalCenter
               Text {
+                textFormat: Text.PlainText
                 text: "Briefing after login"
                 color: root.bar.foreground
                 font.family: root.bar.fontFamily
                 font.pixelSize: Style.font.bodySmall
               }
               Text {
+                textFormat: Text.PlainText
                 width: parent.width
                 wrapMode: Text.Wrap
                 text: root.feats.briefing_toggle ? "Speaks only what changed since last time."
@@ -418,12 +424,14 @@ Panel {
               anchors.rightMargin: Style.space(8)
               anchors.verticalCenter: parent.verticalCenter
               Text {
+                textFormat: Text.PlainText
                 text: "Biometric unlock"
                 color: root.bar.foreground
                 font.family: root.bar.fontFamily
                 font.pixelSize: Style.font.bodySmall
               }
               Text {
+                textFormat: Text.PlainText
                 width: parent.width
                 wrapMode: Text.Wrap
                 text: "Off unless you turn it on. Your face becomes a set of numbers kept only on this computer; no photo is stored and nothing is uploaded."
