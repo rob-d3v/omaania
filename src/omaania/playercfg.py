@@ -34,7 +34,7 @@ def voice_defaults(brain: str, feats: dict, wake_ready: bool, wake_model: str,
             agent["api_key_file"] = str(paths.api_key_file)
         else:                       # older player: it moves the key to the OS keyring on load
             agent["api_key"] = own["key"]
-    elif feats.get("omarchy_agent"):
+    elif feats.get("omarchy_agent") and feats.get("agent_stdin"):
         agent["provider"] = "omarchy-agent"
     # Unknown to older players (ignored there); read by the feat/omarchy-ux build.
     agent["conversation_mode"] = "until_dismissed"

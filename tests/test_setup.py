@@ -208,6 +208,13 @@ class SetupUninstall(unittest.TestCase):
         vc = json.loads((self.sb.home / ".config/aniaplayer/plugins/voice_assistant/voice_config.json").read_text())
         self.assertEqual(vc["agent"]["provider"], "omarchy-agent")
 
+    def test_argv_agent_build_does_not_get_agent_brain(self):
+        self.sha = fake_deb(self.deb, features=True, agent_argv=True)
+        r = self.setup_()
+        self.assertIn("on its command line", r.stdout)
+        vc = json.loads((self.sb.home / ".config/aniaplayer/plugins/voice_assistant/voice_config.json").read_text())
+        self.assertNotIn("provider", vc["agent"])
+
     def test_own_key_never_in_argv_and_0600(self):
         r = self.sb.run("setup", "--yes", "--deb", str(self.deb), "--sha256", self.sha, "--brain", "own-key",
                         "--api-base", "https://api.example.com/v1", "--api-model", "m1",

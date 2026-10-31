@@ -75,7 +75,10 @@ Setup checks each step and only acts when something is missing:
    to omahey.
 5. **Voice assistant defaults.** Asks who answers: your Omarchy default agent
    (default) or your own API key. Fills only the *missing* keys of the
-   player's config, never overwriting a value you set.
+   player's config, never overwriting a value you set. The default agent is
+   only turned on when the installed player hands it your words on stdin;
+   a build that puts the conversation on the agent's command line (readable
+   by other local accounts in `ps`) gets a warning instead.
 6. **Default avatar.** Downloads “Glyph”, a free retro terminal companion
    (sha256-checked, ~94 MB), and makes it the startup avatar only if you have
    not chosen one. It is also free on the Ania marketplace.
@@ -188,7 +191,7 @@ ships and only relies on what is there (`omaania doctor` lists it).
 |---|---|---|
 | Install, show/hide, lock, avatars, settings, logs | yes | yes |
 | Biometric unlock on/off | yes | yes |
-| Brain = Omarchy default agent | no (the player keeps its own brain setting) | yes |
+| Brain = Omarchy default agent | no (the player keeps its own brain setting) | yes, with the conversation on stdin (never on the command line) |
 | Conversation until dismissed | no (5 s follow-up window) | yes |
 | Chat in Omarchy theme colours | no | yes |
 | Edit briefing | no | yes |

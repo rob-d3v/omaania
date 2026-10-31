@@ -49,7 +49,7 @@ def _tgz(files: dict[str, tuple[bytes, int]]) -> bytes:
     return buf.getvalue()
 
 
-def fake_deb(dest: Path, *, features: bool = False) -> str:
+def fake_deb(dest: Path, *, features: bool = False, agent_argv: bool = False) -> str:
     """Write a fake AniaPlayerSetup.deb; returns its sha256."""
     vc = b"class AgentConfig:\n    api_key_file: str = ''\n"
     if features:
@@ -63,7 +63,8 @@ def fake_deb(dest: Path, *, features: bool = False) -> str:
         "usr/share/aniaplayer/plugins-runtime/ania_player/plugins/biometria/cli.py": (b"# briefing editar\n", 0o644),
     }
     if features:
-        files["usr/share/aniaplayer/plugins-runtime/ania_player/plugins/voice_assistant/components/omarchy_agent.py"] = (b"#\n", 0o644)
+        agent = b"run(argv, prompt)\n" if agent_argv else b"run(argv, input=prompt)\n"
+        files["usr/share/aniaplayer/plugins-runtime/ania_player/plugins/voice_assistant/components/omarchy_agent.py"] = (agent, 0o644)
     data = _ar([("debian-binary", b"2.0\n"), ("control.tar.gz", _tgz({"control": (b"Package: aniaplayer\n", 0o644)})),
                 ("data.tar.gz", _tgz(files))])
     dest.write_bytes(data)

@@ -222,6 +222,9 @@ def features(share: Path | None = None) -> dict:
     bio = base / "biometria/cli.py"
     return {
         "omarchy_agent": (va / "components/omarchy_agent.py").is_file() or has(vc, '"omarchy-agent"'),
+        # Builds before this pass the conversation on the agent's command
+        # line, which every local account can read; only stdin builds get it.
+        "agent_stdin": has(va / "components/omarchy_agent.py", "input=prompt"),
         "conversation_mode": has(vc, "conversation_mode"),
         "chat_theme": has(vc, "theme: str"),
         "api_key_file": has(vc, "api_key_file"),

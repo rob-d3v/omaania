@@ -316,6 +316,13 @@ def step_assistant(ui: UI, rec: Record, o, wake_ready: bool, wake_model: str) ->
         if not feats.get("omarchy_agent"):
             warn("this Ania Player build has no “omarchy-agent” brain yet (needs a newer release);"
                  " the player keeps its own brain setting until then")
+        elif not feats.get("agent_stdin"):
+            warn("this Ania Player build hands your conversation to the agent on its command line,"
+                 " where other local accounts can read it, so omaania does not turn that brain on."
+                 " Update the player (omaania update) or use your own key: omaania setup --brain own-key")
+            if (read_json(paths.voice_config).get("agent") or {}).get("provider") == "omarchy-agent":
+                warn(f"{paths.voice_config.name} already uses “omarchy-agent”: switch it in the player's settings"
+                     " until the update")
         else:
             ok(f"brain: your Omarchy default agent ({agent or 'pick one: omarchy default agent <name>'})")
     keys = sorted(set(rec.data["player_keys"].get(str(paths.voice_config), [])) | set(added))
