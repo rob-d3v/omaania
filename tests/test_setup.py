@@ -106,7 +106,7 @@ class SetupUninstall(unittest.TestCase):
         agent.parent.mkdir(parents=True)
         agent.write_text("codex\n")
         r = self.setup_("--mcp")
-        self.assertIn("would run: npx -y ania-mcp@0.1.2 install codex", r.stdout, r.stdout)
+        self.assertIn("would run: npx -y ania-mcp@0.1.3 install codex", r.stdout, r.stdout)
         self.assertNotIn("not handled by", r.stdout)
 
     def test_wake_word_is_honest_until_published(self):
